@@ -11,7 +11,7 @@
     "test": "jest --config jestconfig.json --passWithNoTests",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
-    "lint": "echo \"Error: no lint specified\"",
+    "lint": "tslint -p tsconfig.json",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "echo ",
