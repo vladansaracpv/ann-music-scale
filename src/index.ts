@@ -1,17 +1,17 @@
-import { BaseArray } from 'ann-music-base';
-import { Note, NoteName } from 'ann-music-note';
-import { CHORD, ChordQuality, Chord, ChordName, ChordNameTokens } from 'ann-music-chord';
-import { isSubsetOf, isSupersetOf, modes, transpose, PcChroma, PcNum, PcProps, EmptySet, pcset } from 'ann-music-pc';
+import { CHORD, ChordQuality, Chord, ChordTypeName, ChordNameTokens } from 'ann-music-chord';
+import { isSubsetOf, isSupersetOf, modes, transpose, PcsetChroma, PcsetNum, PcsetProps, EmptySet, pcset } from 'ann-music-pc';
 import { Interval, IntervalName } from 'ann-music-interval';
+import { Note, NoteName } from 'ann-music-note';
+import { BaseArray } from 'ann-music-base';
 import SCALE_LIST from './data';
 
 const { rotate } = BaseArray;
 
-export type ScaleTypeName = string | PcChroma | PcNum;
+export type ScaleTypeName = string | PcsetChroma | PcsetNum;
 export type ScaleName = string;
 export type ScaleNameTokens = [string, string]; // [TONIC, SCALE TYPE]
 
-export interface ScaleType extends PcProps {
+export interface ScaleType extends PcsetProps {
   name: string;
   intervals: IntervalName[];
   aliases: string[];
@@ -31,7 +31,7 @@ export interface Scale extends ScaleType {
   notes: NoteName[];
 }
 
-export interface ScalePcset extends PcProps {
+export interface ScalePcset extends PcsetProps {
   name: string;
   quality: ChordQuality;
   intervals: IntervalName[];
@@ -62,7 +62,7 @@ namespace Theory {
     type: '',
     tonic: null,
     length: 0,
-    num: NaN,
+    setNum: NaN,
     chroma: '',
     normalized: '',
     aliases: [],
@@ -75,7 +75,7 @@ namespace Dictionary {
   export const TYPES: ScaleType[] = SCALE_LIST.map(dataToScaleType);
   export const SCALES: ScaleTypes = TYPES.reduce((index: Record<ScaleTypeName, ScaleType>, scale) => {
     index[scale.name] = scale;
-    index[scale.num] = scale;
+    index[scale.setNum] = scale;
     index[scale.chroma] = scale;
     scale.aliases.forEach(alias => {
       index[alias] = scale;
@@ -184,12 +184,12 @@ namespace Static {
   export function scaleChords(name: string): string[] {
     const s = Scale(name);
     const inScale = isSubsetOf(s.chroma);
-    return CHORD.entries()
+    return CHORD.types
       .filter(chord => inScale(chord.chroma))
       .map(chord => chord.aliases[0]);
   }
 
-  export function containsChord(scale: ScaleName, src: ChordName | ChordNameTokens) {
+  export function containsChord(scale: ScaleName, src: ChordTypeName | ChordNameTokens) {
     const c = parseInt(Chord(src).chroma, 2);
     const s = parseInt(Scale(scale).chroma, 2);
     return (s & c) === c;
