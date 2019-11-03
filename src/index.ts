@@ -1,6 +1,6 @@
 import { BaseArray } from 'ann-music-base';
 import { Note, NoteName } from 'ann-music-note';
-import { CHORD, ChordQuality } from 'ann-music-chord';
+import { CHORD, ChordQuality, Chord, ChordName, ChordNameTokens } from 'ann-music-chord';
 import { isSubsetOf, isSupersetOf, modes, transpose, PcChroma, PcNum, PcProps, EmptySet, pcset } from 'ann-music-pc';
 import { Interval, IntervalName } from 'ann-music-interval';
 import SCALE_LIST from './data';
@@ -187,6 +187,12 @@ namespace Static {
     return CHORD.entries()
       .filter(chord => inScale(chord.chroma))
       .map(chord => chord.aliases[0]);
+  }
+
+  export function containsChord(scale: ScaleName, src: ChordName | ChordNameTokens) {
+    const c = parseInt(Chord(src).chroma, 2);
+    const s = parseInt(Scale(scale).chroma, 2);
+    return (s & c) === c;
   }
 
   /**
