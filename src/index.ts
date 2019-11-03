@@ -22,7 +22,7 @@ export type ScaleTypeName = string;
 export type ScaleTypeChroma = PcsetChroma;
 export type ScaleTypeSetNum = PcsetNum;
 
-export type ScaleTypeProp = ScaleTypeName | ScaleTypeChroma | ScaleTypeSetNum
+export type ScaleTypeProp = ScaleTypeName | ScaleTypeChroma | ScaleTypeSetNum;
 
 export type ScaleNameTokens = [string, string]; // [TONIC, SCALE TYPE]
 
@@ -72,7 +72,7 @@ namespace Theory {
     aliases: [],
     notes: [],
     intervals: [],
-    valid: false
+    valid: false,
   };
 }
 
@@ -127,7 +127,6 @@ namespace Dictionary {
     const type = name.substring(tonic.name.length);
     return [tonic.name, type.length ? type : ''];
   }
-
 }
 
 namespace SetMethods {
@@ -144,9 +143,7 @@ namespace SetMethods {
   export function extended(name: string): string[] {
     const s = Scale(name);
     const isSuperset = isSupersetOf(s.chroma);
-    return Dictionary.TYPES
-      .filter(scale => isSuperset(scale.chroma))
-      .map(scale => scale.name);
+    return Dictionary.TYPES.filter(scale => isSuperset(scale.chroma)).map(scale => scale.name);
   }
 
   /**
@@ -162,9 +159,7 @@ namespace SetMethods {
    */
   export function reduced(name: string): string[] {
     const isSubset = isSubsetOf(Scale(name).chroma);
-    return Dictionary.TYPES
-      .filter(scale => isSubset(scale.chroma))
-      .map(scale => scale.name);
+    return Dictionary.TYPES.filter(scale => isSubset(scale.chroma)).map(scale => scale.name);
   }
 }
 
