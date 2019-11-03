@@ -1,4 +1,4 @@
-import { CHORD, Chord, ChordTypeName, ChordNameTokens } from 'ann-music-chord';
+import { CHORD, Chord, ChordTypeName, ChordInit } from 'ann-music-chord';
 import {
   isSubsetOf,
   isSupersetOf,
@@ -176,14 +176,21 @@ namespace Static {
    */
   export function scaleChords(name: string): string[] {
     const s = Scale(name);
-    const inScale = isSubsetOf(s.chroma);
-    return CHORD.types.filter(chord => inScale(chord.chroma)).map(chord => chord.aliases[0]);
+    const inScale = isSubsetOf(s.normalized);
+    return CHORD.types.filter(chord => inScale(chord.normalized)).map(chord => chord.aliases[0]);
   }
 
-  export function containsChord(scale: ScaleInit, src: ChordTypeName | ChordNameTokens) {
-    const c = parseInt(Chord(src).chroma, 2);
-    const s = parseInt(Scale(scale).chroma, 2);
-    return (s & c) === c;
+  export function containsChord(scale: ScaleInit, chord: ChordInit) {
+    const c = Chord(chord).chroma.split('');
+    const s = Scale(scale).chroma.split('');
+
+    const intersect = [];
+
+    for (let index = 0; index < 12; index++) {
+      intersect.push(+s[index] & +c[index]);
+    }
+
+    return intersect.join('') === c.join('');
   }
 
   /**
@@ -199,9 +206,8 @@ namespace Static {
    */
   export function scaleNotes(notes: NoteName[]) {
     const pcSet: string[] = notes.map(n => Note(n).pc).filter(x => x);
-    const tonic = pcset[0];
-    const scale = sortedUniqNoteNames(pcSet);
-    return rotate(scale.indexOf(tonic), scale);
+    const tonic = pcSet[0];
+    return sortedUniqNoteNames(pcSet);
   }
 
   export function scaleFormula(src: ScaleInit) {
@@ -306,6 +312,22 @@ namespace Static {
 
     return steps;
   }
+
+  export function harmonize(srcScale: ScaleInit, srcChords: ChordTypeName[]): ChordTypeName[] {
+    const scale = Scale(srcScale);
+    const chords = srcChords.map(ch => Chord(ch));
+
+    if (scale.notes) {
+      const harmonized = scale.notes
+        .map(note => srcChords.map(type => Chord(note + ' ' + type)).filter(ch => containsChord(srcScale, ch.name)))
+        .map(c => c[0] || { name: '' })
+        .filter(c => c)
+        .map(c => c.name || '');
+      console.log(harmonized);
+    }
+
+    return srcChords;
+  }
 }
 
 export const SCALE = {
@@ -319,19 +341,22 @@ export const SCALE = {
  * Get a Scale from a scale name.
  */
 export function Scale(src: ScaleInit): Scale {
-  const tokens = Array.isArray(src) ? src : Dictionary.tokenize(src);
-  const tonic = Note(tokens[0]).pc;
-  const st = Dictionary.SCALES[tokens[1]] || Theory.NoScaleType;
+  const [sname, stype] = Array.isArray(src) ? src : Dictionary.tokenize(src);
+  const tonic = Note(sname as NoteName);
+  const scales = SCALE.scales;
+  const st = scales[stype.trim() as ScaleTypeName] || Theory.NoScaleType;
   if (st.empty) {
     return Theory.NoScale;
   }
 
-  const type = st.name;
-  const notes: string[] = tonic ? st.intervals.map(i => transpose(tonic, i).letter) : [];
+  const chroma = tonic.chroma ? rotate(-tonic.chroma, st.chroma.split('')).join('') : st.chroma;
+  const scType = { ...st, chroma };
 
-  const name = tonic ? tonic + ' ' + type : type;
+  const type = st.name;
+  const notes: string[] = tonic.valid ? st.intervals.map(i => transpose(tonic.name, i).name) : [];
+  const name = tonic.valid ? `${tonic.pc} ${type}` : type;
 
   const valid = true;
 
-  return { ...st, name, type, tonic, notes, valid };
+  return { ...scType, name, type, tonic: tonic.pc, notes, valid };
 }
