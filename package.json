@@ -1,6 +1,6 @@
 {
   "name": "ann-music-scale",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Scale methods for @ann-music-js project",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
