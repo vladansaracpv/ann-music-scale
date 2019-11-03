@@ -1,5 +1,15 @@
 import { CHORD, ChordQuality, Chord, ChordTypeName, ChordNameTokens } from 'ann-music-chord';
-import { isSubsetOf, isSupersetOf, modes, transpose, PcsetChroma, PcsetNum, PcsetProps, EmptySet, pcset } from 'ann-music-pc';
+import {
+  isSubsetOf,
+  isSupersetOf,
+  modes,
+  transpose,
+  PcsetChroma,
+  PcsetNum,
+  PcsetProps,
+  EmptySet,
+  pcset,
+} from 'ann-music-pc';
 import { Interval, IntervalName } from 'ann-music-interval';
 import { Note, NoteName } from 'ann-music-note';
 import { BaseArray } from 'ann-music-base';
@@ -184,9 +194,7 @@ namespace Static {
   export function scaleChords(name: string): string[] {
     const s = Scale(name);
     const inScale = isSubsetOf(s.chroma);
-    return CHORD.types
-      .filter(chord => inScale(chord.chroma))
-      .map(chord => chord.aliases[0]);
+    return CHORD.types.filter(chord => inScale(chord.chroma)).map(chord => chord.aliases[0]);
   }
 
   export function containsChord(scale: ScaleName, src: ChordTypeName | ChordNameTokens) {
