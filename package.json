@@ -34,15 +34,15 @@
   },
   "homepage": "https://github.com/vladansaracpv/ann-music-scale#readme",
   "devDependencies": {
-    "ts-jest": "^24.0.2",
-    "@types/jest": "^24.0.19",
+    "@types/jest": "^24.0.22",
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
-    "tslint": "^5.20.0",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   },
   "dependencies": {
-    "ann-music-chord": "^1.0.2"
+    "ann-music-chord": "^1.0.3"
   }
 }
