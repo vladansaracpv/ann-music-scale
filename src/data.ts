@@ -72,7 +72,7 @@ const SCALE_LIST: string[][] = [
   ['1P 2m 3m 4A 5P 6m 7M', 'todi raga'],
   ['1P 2M 3M 4P 5P 6M 7m', 'mixolydian', 'dominant'],
   ['1P 2m 3M 4P 5d 6m 7M', 'persian'],
-  ['1P 2M 3M 4P 5P 6M 7M', 'major', 'ionian'],
+  ['1P 2M 3M 4P 5P 6M 7M', 'ionian', 'major'],
   ['1P 2m 3M 5d 6m 7m 7M', 'enigmatic'],
   ['1P 2M 3M 4P 5A 6M 7M', 'ionian augmented'],
   ['1P 2m 3M 4A 5P 6M 7M', 'lydian #9'],

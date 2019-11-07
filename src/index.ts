@@ -1,7 +1,7 @@
 import { CHORD, Chord, ChordTypeName, ChordInit } from 'ann-music-chord';
 import { PcChroma, PcNum, PcProperties, PC, PitchClass as PcStatic } from 'ann-music-pc';
 import { Interval } from 'ann-music-interval';
-import { Note, NoteName, NOTE, NotePC } from 'ann-music-note';
+import { Note, NoteName, NOTE } from 'ann-music-note';
 import { BaseArray, BaseStrings } from 'ann-music-base';
 import SCALE_LIST from './data';
 
@@ -108,6 +108,7 @@ export const SCALE = {
     intervals: [],
     aliases: [],
   },
+
   NoScale: {
     empty: true,
     name: '',
