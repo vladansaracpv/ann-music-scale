@@ -4,12 +4,13 @@ import { Interval } from 'ann-music-interval';
 import { Note, NoteName, NOTE } from 'ann-music-note';
 import { BaseArray, BaseStrings } from 'ann-music-base';
 import SCALE_LIST from './data';
+import { eq, neq } from 'ann-music-base/lib/relations';
 
 const { rotate } = BaseArray;
 
 const { tokenize: noteTokenize } = BaseStrings;
 
-const { isSubsetOf, isSupersetOf, modes, transpose } = PcStatic.Methods;
+const { isSubsetOf, isSupersetOf, modes: pcmodes, transpose } = PcStatic.Methods;
 
 const EmptyPcSet = PcStatic.Empty;
 
@@ -41,20 +42,36 @@ export interface Scale extends ScaleType {
 
 export type ScaleMode = [string, string];
 
-/**
- * Properties for a scale in the scale dictionary. It's a pitch class set
- * properties with the following additional information:
- * - name: the scale name
- * - aliases: alternative list of names
- * - intervals: an array of interval names
- */
+namespace Theory {
+  export const NoScaleType: ScaleType = {
+    ...EmptyPcSet,
+    name: '',
+    intervals: [],
+    aliases: [],
+  };
+
+  export const NoScale: Scale = {
+    empty: true,
+    name: '',
+    type: '',
+    tonic: '',
+    length: 0,
+    setNum: NaN,
+    chroma: '',
+    normalized: '',
+    aliases: [],
+    notes: [],
+    intervals: [],
+    valid: false,
+  };
+}
 
 namespace Dictionary {
-  export const TYPES: ScaleType[] = SCALE_LIST.map(toScaleType);
-  export const SCALES: ScaleTypes = toScales(TYPES);
+  export const types: ScaleType[] = SCALE_LIST.map(toScaleType);
+  export const all: ScaleTypes = toScales(types);
 
-  export function toScales(types: ScaleType[]) {
-    return types.reduce((index: Record<ScaleTypeName, ScaleType>, scale) => {
+  function toScales(chordTypes: ScaleType[]) {
+    return chordTypes.reduce((index: Record<ScaleTypeName, ScaleType>, scale) => {
       index[scale.name] = scale;
       index[scale.setNum] = scale;
       index[scale.chroma] = scale;
@@ -65,11 +82,13 @@ namespace Dictionary {
     }, {});
   }
 
-  export function toScaleType([ivls, name, ...aliases]: string[]): ScaleType {
+  function toScaleType([ivls, name, ...aliases]: string[]): ScaleType {
     const intervals = ivls.split(' ');
     return { ...PC(intervals), name, intervals, aliases };
   }
+}
 
+namespace Static {
   /**
    * Given a string with a scale name and (optionally) a tonic, split
    * that components.
@@ -99,32 +118,7 @@ namespace Dictionary {
       return ['', tokens.join(' '), ''];
     }
   }
-}
 
-export const SCALE = {
-  NoScaleType: {
-    ...EmptyPcSet,
-    name: '',
-    intervals: [],
-    aliases: [],
-  },
-
-  NoScale: {
-    empty: true,
-    name: '',
-    type: '',
-    tonic: '',
-    length: 0,
-    setNum: NaN,
-    chroma: '',
-    normalized: '',
-    aliases: [],
-    notes: [],
-    intervals: [],
-    valid: false,
-  },
-  types: Dictionary.TYPES,
-  scales: Dictionary.SCALES,
   /**
    * Get all chords that fits a given scale
    *
@@ -135,13 +129,38 @@ export const SCALE = {
    * @example
    * scaleChords("pentatonic") // => ["5", "64", "M", "M6", "Madd9", "Msus2"]
    */
-  scaleChords(name: string): string[] {
+  export function chords(name: string): string[] {
     const s = Scale(name);
     const inScale = isSubsetOf(s.normalized);
     return CHORD.types.filter(chord => inScale(chord.normalized)).map(chord => chord.aliases[0]);
-  },
+  }
 
-  containsChord(scale: ScaleInit, chord: ChordInit) {
+  /**
+   * Given an array of notes, return the scale: a pitch class set starting from
+   * the first note of the array
+   *
+   * @function
+   * @param {string[]} notes
+   * @return {string[]} pitch classes with same tonic
+   * @example
+   * notes(['C4', 'c3', 'C5', 'C4', 'c4']) // => ["C"]
+   * notes(['D4', 'c#5', 'A5', 'F#6']) // => ["D", "F#", "A", "C#"]
+   */
+  export function notes(names: NoteName[]) {
+    return names
+      .map(n => Note(n))
+      .filter(n => n.valid)
+      .sort((a, b) => a.midi - b.midi)
+      .map(n => n.pc)
+      .filter((n, i, a) => eq(i, 0) || neq(n, a[i - 1]));
+  }
+
+  export function formula(src: ScaleInit) {
+    const props = Scale(src);
+    return props.intervals.map(ivl => Interval(ivl).semitones);
+  }
+
+  export function containsChord(scale: ScaleInit, chord: ChordInit) {
     const c = Chord(chord).chroma.split('');
     const s = Scale(scale).chroma.split('');
 
@@ -152,29 +171,7 @@ export const SCALE = {
     }
 
     return intersect.join('') === c.join('');
-  },
-
-  /**
-   * Given an array of notes, return the scale: a pitch class set starting from
-   * the first note of the array
-   *
-   * @function
-   * @param {string[]} notes
-   * @return {string[]} pitch classes with same tonic
-   * @example
-   * scaleNotes(['C4', 'c3', 'C5', 'C4', 'c4']) // => ["C"]
-   * scaleNotes(['D4', 'c#5', 'A5', 'F#6']) // => ["D", "F#", "A", "C#"]
-   */
-  scaleNotes(notes: NoteName[]) {
-    const pcSet: string[] = notes.map(n => Note(n).pc).filter(x => x);
-    const tonic = pcSet[0];
-    return SCALE.sortedUniqNoteNames(pcSet);
-  },
-
-  scaleFormula(src: ScaleInit) {
-    const props = Scale(src);
-    return props.intervals.map(ivl => Interval(ivl).semitones);
-  },
+  }
 
   /**
    * Find mode names of a scale
@@ -182,7 +179,7 @@ export const SCALE = {
    * @function
    * @param {string} name - scale name
    * @example
-   * modeNames("C pentatonic") // => [
+   * modes("C pentatonic") // => [
    *   ["C", "major pentatonic"],
    *   ["D", "egyptian"],
    *   ["E", "malkos raga"],
@@ -190,14 +187,14 @@ export const SCALE = {
    *   ["A", "minor pentatonic"]
    * ]
    */
-  modeNames(name: string): ScaleMode[] {
+  export function modes(name: string): ScaleMode[] {
     const s = Scale(name);
     if (s.empty) {
       return [];
     }
 
     const tonics = s.tonic ? s.notes : s.intervals;
-    return modes(s.chroma)
+    return pcmodes(s.chroma)
       .map(
         (chroma: string, i: number): ScaleMode => {
           const modeName = Scale(chroma).name;
@@ -205,61 +202,9 @@ export const SCALE = {
         },
       )
       .filter(x => x[0]);
-  },
+  }
 
-  /**
-   * Sort an array of notes in ascending order. Pitch classes are listed
-   * before notes. Any string that is not a note is removed.
-   *
-   * @param {string[]} notes
-   * @return {string[]} sorted array of notes
-   *
-   * @example
-   * sortedNoteNames(['c2', 'c5', 'c1', 'c0', 'c6', 'c'])
-   * // => ['C', 'C0', 'C1', 'C2', 'C5', 'C6']
-   * sortedNoteNames(['c', 'F', 'G', 'a', 'b', 'h', 'J'])
-   * // => ['C', 'F', 'G', 'A', 'B']
-   */
-  sortedNoteNames(notes: NoteName[]): string[] {
-    const valid = notes.map(n => Note(n)).filter(n => n.valid);
-    return valid.sort((a, b) => a.midi - b.midi).map(n => n.pc);
-  },
-
-  /**
-   * Get sorted notes with duplicates removed. Pitch classes are listed
-   * before notes.
-   *
-   * @function
-   * @param {string[]} array
-   * @return {string[]} unique sorted notes
-   *
-   * @example
-   * Array.sortedUniqNoteNames(['a', 'b', 'c2', '1p', 'p2', 'c2', 'b', 'c', 'c3' ])
-   * // => [ 'C', 'A', 'B', 'C2', 'C3' ]
-   */
-  sortedUniqNoteNames(notes: NoteName[]): string[] {
-    return SCALE.sortedNoteNames(notes).filter((n, i, a) => i === 0 || n !== a[i - 1]);
-  },
-
-  semitonesToStep(semitones: number): string {
-    let char: string;
-    switch (semitones) {
-      case 1:
-        char = 'H';
-        break;
-      case 2:
-        char = 'W';
-        break;
-      case 3:
-        char = 'W.';
-        break;
-      default:
-        break;
-    }
-    return char;
-  },
-
-  scaleToSteps(src: ScaleInit) {
+  export function toSteps(src: ScaleInit) {
     const scale = Scale(src);
     const intervals = scale.intervals;
 
@@ -267,16 +212,15 @@ export const SCALE = {
     const steps = [];
     for (let i = 1; i < semitones.length; i++) {
       const diff = semitones[i] - semitones[i - 1];
-      const step = SCALE.semitonesToStep(diff);
+      const step = eq(diff, 1) ? 'H' : eq(diff, 2) ? 'W' : 'W.';
       steps.push(step);
     }
 
     return steps;
-  },
+  }
 
-  harmonize(srcScale: ScaleInit, srcChords: ChordTypeName[]): ChordTypeName[] {
+  export function harmonize(srcScale: ScaleInit, srcChords: ChordTypeName[]): ChordTypeName[] {
     const scale = Scale(srcScale);
-    const chords = srcChords.map(ch => Chord(ch));
 
     if (scale.notes) {
       const harmonized = scale.notes
@@ -290,7 +234,7 @@ export const SCALE = {
     }
 
     return srcChords;
-  },
+  }
   /**
    * Get all scales names that are a superset of the given one
    * (has the same notes and at least one more)
@@ -301,11 +245,11 @@ export const SCALE = {
    * @example
    * extended("major") // => ["bebop", "bebop dominant", "bebop major", "chromatic", "ichikosucho"]
    */
-  extended(name: string): string[] {
+  export function extended(name: string): string[] {
     const s = Scale(name);
     const isSuperset = isSupersetOf(s.chroma);
-    return Dictionary.TYPES.filter(scale => isSuperset(scale.chroma)).map(scale => scale.name);
-  },
+    return Dictionary.types.filter(scale => isSuperset(scale.chroma)).map(scale => scale.name);
+  }
 
   /**
    * Find all scales names that are a subset of the given one
@@ -318,19 +262,25 @@ export const SCALE = {
    * @example
    * reduced("major") // => ["ionian pentatonic", "major pentatonic", "ritusen"]
    */
-  reduced(name: string): string[] {
+  export function reduced(name: string): string[] {
     const isSubset = isSubsetOf(Scale(name).chroma);
-    return Dictionary.TYPES.filter(scale => isSubset(scale.chroma)).map(scale => scale.name);
-  },
+    return Dictionary.types.filter(scale => isSubset(scale.chroma)).map(scale => scale.name);
+  }
+}
+
+export const SCALE = {
+  ...Theory,
+  ...Static,
+  ...Dictionary,
 };
 
 /**
  * Get a Scale from a scale name.
  */
 export function Scale(src: ScaleInit): Scale {
-  const [sname, stype, octave] = Array.isArray(src) ? src : Dictionary.tokenize(src);
+  const [sname, stype, octave] = Array.isArray(src) ? src : SCALE.tokenize(src);
   const tonic = Note((sname + octave) as NoteName);
-  const scales = SCALE.scales;
+  const scales = SCALE.all;
   const st = (scales[stype.trim() as ScaleTypeName] || SCALE.NoScaleType) as ScaleType;
   if (st.empty) {
     return SCALE.NoScale;
