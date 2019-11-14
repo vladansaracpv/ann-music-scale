@@ -2,7 +2,7 @@ import { BaseArray, BaseStrings } from 'ann-music-base';
 import { eq, neq } from 'ann-music-base/lib/relations';
 import { CHORD, ChordTypeName } from 'ann-music-chord';
 import { Interval, IntervalName } from 'ann-music-interval';
-import { Note, NOTE, NoteName, NoteProps } from 'ann-music-note';
+import { Note, NOTE, NoteLetter, NoteName, NoteProps } from 'ann-music-note';
 
 import { PC, PcChroma, PcNum, PcProperties, PitchClass as PcStatic } from 'ann-music-pc';
 
@@ -35,7 +35,7 @@ export interface ScaleType extends PcProperties {
 
 export type ScaleTypes = Record<ScaleTypeProp, ScaleType>;
 
-export interface Scale extends ScaleType {
+export interface ScaleProps extends ScaleType {
   tonic: string;
   type: string;
   notes: NoteName[];
@@ -53,7 +53,7 @@ namespace Theory {
     aliases: [],
   };
 
-  export const NoScale: Scale = {
+  export const NoScale: ScaleProps = {
     empty: true,
     name: '',
     type: '',
@@ -293,7 +293,7 @@ export const scaleNotes = (tonic: NoteName, intervals: IntervalName[]) => {
   return notes;
 };
 
-export function Scale(src: ScaleInit): Scale {
+export function Scale(src: ScaleInit): ScaleProps {
   const [sname, stype, octave] = Array.isArray(src) ? src : SCALE.tokenize(src);
   const tonic = Note((sname + octave) as NoteName);
   const scales = Dictionary.all;
