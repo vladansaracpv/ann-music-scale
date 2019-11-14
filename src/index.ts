@@ -1,10 +1,12 @@
-import { CHORD, Chord, ChordTypeName, ChordInit } from 'ann-music-chord';
-import { PcChroma, PcNum, PcProperties, PC, PitchClass as PcStatic } from 'ann-music-pc';
-import { Interval, IntervalName } from 'ann-music-interval';
-import { Note, NoteName, NOTE, NoteProps, NoteLetter } from 'ann-music-note';
 import { BaseArray, BaseStrings } from 'ann-music-base';
-import SCALE_LIST from './data';
 import { eq, neq } from 'ann-music-base/lib/relations';
+import { CHORD, ChordTypeName } from 'ann-music-chord';
+import { Interval, IntervalName } from 'ann-music-interval';
+import { Note, NOTE, NoteName, NoteProps } from 'ann-music-note';
+
+import { PC, PcChroma, PcNum, PcProperties, PitchClass as PcStatic } from 'ann-music-pc';
+
+import SCALE_LIST from './data';
 
 const { rotate } = BaseArray;
 
@@ -257,7 +259,6 @@ namespace Static {
 export const SCALE = {
   ...Theory,
   ...Static,
-  ...Dictionary,
 };
 
 const nextScaleStep = (currentNote: NoteProps, scaleSteps: number, midi: number) => {
@@ -295,7 +296,7 @@ export const scaleNotes = (tonic: NoteName, intervals: IntervalName[]) => {
 export function Scale(src: ScaleInit): Scale {
   const [sname, stype, octave] = Array.isArray(src) ? src : SCALE.tokenize(src);
   const tonic = Note((sname + octave) as NoteName);
-  const scales = SCALE.all;
+  const scales = Dictionary.all;
   const st = (scales[stype.trim() as ScaleTypeName] || SCALE.NoScaleType) as ScaleType;
 
   if (st.empty) {
