@@ -103,7 +103,8 @@ export function Scale(src: string): ScaleProps {
   const root = Note({ name: sname + octave });
 
   // get scale type
-  const { type, aliases, intervals, pc } = scaleType(stype);
+  const { type, aliases, intervals } = scaleType(stype);
+  let pc = scaleType(stype).pc;
 
   if (!intervals.length) {
     return NoScale;

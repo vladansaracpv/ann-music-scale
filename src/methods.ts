@@ -1,8 +1,8 @@
 import { BaseRelations, BaseStrings } from 'ann-music-base';
-import { CHORD } from '@packages/chord';
-import { Interval } from '@packages/interval';
-import { Note, NOTE, NoteName } from '@packages/note';
-import { PC } from '@packages/pc';
+import { CHORD } from 'ann-music-chord';
+import { Interval } from 'ann-music-interval';
+import { Note, NOTE, NoteName } from 'ann-music-note';
+import { PC } from 'ann-music-pc';
 
 import { SCALES, SCALE_TYPES } from './dictionary';
 import { Scale } from './properties';

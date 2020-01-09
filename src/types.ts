@@ -1,6 +1,6 @@
-import { NoteName } from '@packages/note';
-import { PcProperties } from '@packages/pc';
-import { IntervalName } from '@packages/interval';
+import { NoteName } from 'ann-music-note';
+import { PcProperties } from 'ann-music-pc';
+import { IntervalName } from 'ann-music-interval';
 
 export type ScalePc = Pick<PcProperties, 'pcnum' | 'chroma' | 'normalized'>;
 

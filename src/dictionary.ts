@@ -1,15 +1,16 @@
-import { map } from './../base/functional';
-import { Pc } from '@packages/pc';
+import { BaseFunctional } from 'ann-music-base';
+import { PC } from 'ann-music-pc';
 
 import SCALE_LIST from './data';
 import { ScaleType } from './types';
 
+const { map } = BaseFunctional;
 type ScaleTypes = Record<string, ScaleType>;
 
 function toScaleType([ivls, type, abbrvs]: string[]): ScaleType {
   const intervals = ivls.split(' ');
   const aliases = abbrvs ? abbrvs.split(' ') : [];
-  const { pcnum, chroma, normalized } = Pc({ intervals });
+  const { pcnum, chroma, normalized } = PC({ intervals });
 
   return {
     pc: { pcnum, chroma, normalized },
