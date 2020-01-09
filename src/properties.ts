@@ -1,6 +1,6 @@
 import { BaseArray, BaseTypings } from 'ann-music-base';
 import { Interval, IntervalName } from 'ann-music-interval';
-import { Note, NOTE, NoteName, NoteProps, NoteLetter, } from 'ann-music-note';
+import { Note, NOTE, NoteName, NoteProps, NoteLetter } from 'ann-music-note';
 
 import { SCALES } from './dictionary';
 import { tokenize } from './methods';
@@ -17,7 +17,6 @@ const EmptyPc = {
   length: 0,
   empty: true,
 };
-
 
 export const NoScaleType: ScaleType = {
   pc: EmptyPc,
