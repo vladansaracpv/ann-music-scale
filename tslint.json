@@ -3,6 +3,7 @@
   "rules": {
     "member-access": false,
     "no-console": false,
+    "no-shadowed-variable": false,
     "ordered-imports": false,
     "curly": false,
     "no-bitwise": false,
